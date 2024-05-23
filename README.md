@@ -33,6 +33,10 @@ MACRO_NAME
 );
 ```
 
+## Limitations
+
+Currently, only RLE-encoded images with indexed colors are supported.
+
 ## Building
 
 Execute `make` to build the executable, which will be placed at
