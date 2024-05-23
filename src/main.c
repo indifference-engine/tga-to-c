@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "reopen_as_read_only_binary_or_throw.h"
+#include "reopen_as_write_only_binary_or_throw.h"
 #include "read_u8_or_throw.h"
 #include "read_u8s_or_throw.h"
 #include "read_u16_or_throw.h"
@@ -22,6 +23,7 @@ int main(int argc, char **argv)
   }
 
   reopen_as_read_only_binary_or_throw("the input TGA file", stdin);
+  reopen_as_write_only_binary_or_throw("the output C file", stdout);
 
   const uint8_t id_length = read_u8_or_throw("the ID length field", stdin);
 
