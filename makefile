@@ -4,7 +4,7 @@ else
 	CC = clang
 endif
 
-CFLAGS = -Wall -Wextra -Werror -std=c99 -nostdlib -ffreestanding -flto -O3 -pedantic
+CFLAGS = -Wall -Wextra -Werror -std=c99 -nostdlib -ffreestanding -O3 -pedantic
 
 # Unfortunately, I have found that make quite often selects the wrong shell
 # (e.g. PowerShell), so commands like "find" won't work unless we explicitly
@@ -20,7 +20,7 @@ TESTS = $(patsubst tests/cases/%, %, $(shell bash -c "find tests/cases -mindepth
 
 dist/tga_to_c: $(O_FILES)
 	mkdir -p $(dir $@)
-	$(CC) $(CLAGS) $(O_FILES) -o $@
+	$(CC) $(CLAGS) -flto $(O_FILES) -o $@
 
 obj/%.o: src/%.c $(TOTAL_REBUILD_FILES)
 	mkdir -p $(dir $@)
