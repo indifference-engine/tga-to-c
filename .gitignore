@@ -1,0 +1,4 @@
+obj
+dist
+tests/results
+tests/pass_markers
