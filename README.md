@@ -19,17 +19,20 @@ MACRO_NAME
   // Width of image in pixel columns.
   3,
 
-  // Red plane as unit intervals, row-major, starting in top left.  Opacity is not pre-multiplied.
-  { 0.3f, 0.7f, 0.8f, 0.7f, 0.2f, 0.4f },
+  // Red plane, not linearized, row-major, starting in top left.  Opacity is not
+  // pre-multiplied.
+  { 255, 18, 137, 209, 64, 32 },
 
-  // Green plane as unit intervals, row-major, starting in top left.  Opacity is not pre-multiplied.
-  { 0.3f, 0.7f, 0.8f, 0.7f, 0.2f, 0.4f },
+  // Green plane, not linearized, row-major, starting in top left.  Opacity is
+  // not pre-multiplied.
+  { 255, 18, 137, 209, 64, 32 },
 
-  // Blue plane as unit intervals, row-major, starting in top left.  Opacity is not pre-multiplied.
-  { 0.3f, 0.7f, 0.8f, 0.7f, 0.2f, 0.4f },
+  // Blue plane, not linearized, row-major, starting in top left.  Opacity is
+  // not pre-multiplied.
+  { 255, 18, 137, 209, 64, 32 },
 
-   // Opacity plane as unit intervals, row-major, starting in top left.
-  { 0.3f, 0.7f, 0.8f, 0.7f, 0.2f, 0.4f }
+  // Opacity plane, not linearized, row-major, starting in top left.
+  { 255, 18, 137, 209, 64, 32 },
 );
 ```
 

@@ -20,7 +20,7 @@ TESTS = $(patsubst tests/cases/%, %, $(shell bash -c "find tests/cases -mindepth
 
 dist/tga_to_c: $(O_FILES)
 	mkdir -p $(dir $@)
-	$(CC) $(CLAGS) -flto -lm $(O_FILES) -o $@
+	$(CC) $(CLAGS) -flto $(O_FILES) -o $@
 
 obj/%.o: src/%.c $(TOTAL_REBUILD_FILES)
 	mkdir -p $(dir $@)

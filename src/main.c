@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include "reopen_as_read_only_binary_or_throw.h"
 #include "reopen_as_write_only_binary_or_throw.h"
 #include "read_u8_or_throw.h"
@@ -120,9 +119,9 @@ int main(int argc, char **argv)
 
   write_or_throw("the header", stdout, "%s%s\n(\n  %s,\n  %d,\n  {", argc > 3 ? "\n" : "", argv[1], argv[2], image_specification_width);
 
-  float *const greens = malloc_or_throw("the green channel", sizeof(float) * image_specification_width * image_specification_height);
-  float *const blues = malloc_or_throw("the blue channel", sizeof(float) * image_specification_width * image_specification_height);
-  float *const opacities = malloc_or_throw("the red channel", sizeof(float) * image_specification_width * image_specification_height);
+  uint8_t *const greens = malloc_or_throw("the green channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
+  uint8_t *const blues = malloc_or_throw("the blue channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
+  uint8_t *const opacities = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
 
   int output_pixels = 0;
 
@@ -149,11 +148,11 @@ int main(int argc, char **argv)
             throw("Out-of-range color map index in compressed data.");
           }
 
-          greens[output_pixels] = pow(((float)color_map_data[offset + 1]) / 255.0f, 2.2f);
-          blues[output_pixels] = pow(((float)color_map_data[offset]) / 255.0f, 2.2f);
-          opacities[output_pixels] = ((float)color_map_data[offset + 3]) / 255.0f;
+          greens[output_pixels] = color_map_data[offset + 1];
+          blues[output_pixels] = color_map_data[offset];
+          opacities[output_pixels] = color_map_data[offset + 3];
 
-          write_or_throw("a red", stdout, "%s%s%f", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", pow(((float)color_map_data[offset + 2]) / 255.0f, 2.2f));
+          write_or_throw("a red", stdout, "%s%s%d", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", color_map_data[offset + 2]);
           output_pixels++;
           instruction--;
         }
@@ -174,11 +173,11 @@ int main(int argc, char **argv)
       {
         if (output_pixels < image_specification_width * image_specification_height)
         {
-          greens[output_pixels] = pow(((float)color_map_data[offset + 1]) / 255.0f, 2.2f);
-          blues[output_pixels] = pow(((float)color_map_data[offset]) / 255.0f, 2.2f);
-          opacities[output_pixels] = ((float)color_map_data[offset + 3]) / 255.0f;
+          greens[output_pixels] = color_map_data[offset + 1];
+          blues[output_pixels] = color_map_data[offset];
+          opacities[output_pixels] = color_map_data[offset + 3];
 
-          write_or_throw("a red", stdout, "%s%s%f", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", pow(((float)color_map_data[offset + 2]) / 255.0f, 2.2f));
+          write_or_throw("a red", stdout, "%s%s%d", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", color_map_data[offset + 2]);
           output_pixels++;
           instruction--;
         }
@@ -196,7 +195,7 @@ int main(int argc, char **argv)
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
-    write_or_throw("a green", stdout, "%s%s%f", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", greens[pixel]);
+    write_or_throw("a green", stdout, "%s%s%d", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", greens[pixel]);
   }
   free(greens);
 
@@ -204,7 +203,7 @@ int main(int argc, char **argv)
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
-    write_or_throw("a blue", stdout, "%s%s%f", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n     " : "", blues[pixel]);
+    write_or_throw("a blue", stdout, "%s%s%d", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n     " : "", blues[pixel]);
   }
   free(blues);
 
@@ -212,7 +211,7 @@ int main(int argc, char **argv)
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
-    write_or_throw("an opacity", stdout, "%s%s%f", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", opacities[pixel]);
+    write_or_throw("an opacity", stdout, "%s%s%d", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", opacities[pixel]);
   }
   free(opacities);
 
