@@ -4,7 +4,7 @@ else
 	CC = clang
 endif
 
-CFLAGS = -Wall -Wextra -Werror -std=c99 -nostdlib -ffreestanding -O3 -pedantic
+CFLAGS = -Wall -Wextra -Werror -std=c99 -nostdlib -ffreestanding -O3 -pedantic -ffp-contract=off
 
 # Unfortunately, I have found that make quite often selects the wrong shell
 # (e.g. PowerShell), so commands like "find" won't work unless we explicitly
