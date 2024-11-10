@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     throw("Color map type %d is unsupported (only 1).", color_map_type);
   }
 
-  const uint8_t image_type = read_u8_or_throw("the image map type", stdin);
+  const uint8_t image_type = read_u8_or_throw("the image type", stdin);
 
   if (image_type != 9)
   {
