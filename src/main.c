@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 
   while (output_pixels < image_specification_width * image_specification_height)
   {
-    int8_t instruction = read_s8_or_throw("next RLE instruction", stdin);
+    int instruction = read_s8_or_throw("next RLE instruction", stdin);
 
     if (instruction >= 0)
     {
