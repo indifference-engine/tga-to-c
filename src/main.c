@@ -215,7 +215,7 @@ int main(int argc, char **argv)
   }
   free(opacities);
 
-  write_or_throw("the footer", stdout, "\n  )\n);\n");
+  write_or_throw("the footer", stdout, "\n  )\n)\n");
 
   return 0;
 }

@@ -61,7 +61,7 @@ TEXTURE_MACRO_NAME
     OPACITY_MACRO_NAME(64),
     OPACITY_MACRO_NAME(32)
   )
-);
+)
 ```
 
 ## Limitations
