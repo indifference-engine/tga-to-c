@@ -30,7 +30,7 @@ test: $(addprefix tests/pass_markers/, $(TESTS))
 
 tests/results/%.c: tests/cases/%/input.tga dist/tga_to_c
 	mkdir -p $(dir $@)
-	dist/tga_to_c TEST_MACRO_NAME test_variable_name test/include/a.h test/include/b.h test/include/c.h < $< > $@
+	dist/tga_to_c TEST_TEXTURE_MACRO_NAME test_variable_name TEST_REDS_MACRO_NAME TEST_RED_MACRO_NAME TEST_GREENS_MACRO_NAME TEST_GREEN_MACRO_NAME TEST_BLUES_MACRO_NAME TEST_BLUE_MACRO_NAME TEST_OPACITIES_MACRO_NAME TEST_OPACITY_MACRO_NAME test/include/a.h test/include/b.h test/include/c.h < $< > $@
 
 tests/pass_markers/%: tests/results/%.c tests/cases/%/expected.c
 	diff $^

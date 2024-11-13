@@ -16,9 +16,9 @@ int main(int argc, char **argv)
   (void)(argc);
   (void)(argv);
 
-  if (argc < 3)
+  if (argc < 11)
   {
-    throw("At least 2 arguments are required (macro name and variable name).");
+    throw("At least 10 arguments are required (texture macro name, red plane macro name, red macro name, green plane macro name, green macro name, blue plane macro name, blue macro name, opacity plane macro name, opacity macro name and variable name).");
   }
 
   reopen_as_read_only_binary_or_throw("the input TGA file", stdin);
@@ -112,12 +112,12 @@ int main(int argc, char **argv)
 
   uint8_t *const color_map_data = read_u8s_or_throw("the color map", stdin, color_map_size);
 
-  for (int index = 3; index < argc; index++)
+  for (int index = 11; index < argc; index++)
   {
     write_or_throw("an include", stdout, "#include \"%s\"\n", argv[index]);
   }
 
-  write_or_throw("the header", stdout, "%s%s\n(\n  %s,\n  %d,\n  {", argc > 3 ? "\n" : "", argv[1], argv[2], image_specification_width);
+  write_or_throw("the header", stdout, "%s%s\n(\n  %s,\n  %d,\n  %s(", argc > 3 ? "\n" : "", argv[1], argv[2], image_specification_width, argv[3]);
 
   uint8_t *const greens = malloc_or_throw("the green channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const blues = malloc_or_throw("the blue channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
           blues[output_pixels] = color_map_data[offset];
           opacities[output_pixels] = color_map_data[offset + 3];
 
-          write_or_throw("a red", stdout, "%s%s%d", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", color_map_data[offset + 2]);
+          write_or_throw("a red", stdout, "%s%s%s(%d)", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", argv[4], color_map_data[offset + 2]);
           output_pixels++;
           instruction--;
         }
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
           blues[output_pixels] = color_map_data[offset];
           opacities[output_pixels] = color_map_data[offset + 3];
 
-          write_or_throw("a red", stdout, "%s%s%d", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", color_map_data[offset + 2]);
+          write_or_throw("a red", stdout, "%s%s%s(%d)", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", argv[4], color_map_data[offset + 2]);
           output_pixels++;
           instruction--;
         }
@@ -191,31 +191,31 @@ int main(int argc, char **argv)
 
   free(color_map_data);
 
-  write_or_throw("the separator between the red and green planes", stdout, "\n  },\n  {");
+  write_or_throw("the separator between the red and green planes", stdout, "\n  ),\n  %s(", argv[5]);
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
-    write_or_throw("a green", stdout, "%s%s%d", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", greens[pixel]);
+    write_or_throw("a green", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", argv[6], greens[pixel]);
   }
   free(greens);
 
-  write_or_throw("the separator between the green and blue planes", stdout, "\n  },\n  {");
+  write_or_throw("the separator between the green and blue planes", stdout, "\n  ),\n  %s(", argv[7]);
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
-    write_or_throw("a blue", stdout, "%s%s%d", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n     " : "", blues[pixel]);
+    write_or_throw("a blue", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n     " : "", argv[8], blues[pixel]);
   }
   free(blues);
 
-  write_or_throw("the separator between the blue and opacity planes", stdout, "\n  },\n  {");
+  write_or_throw("the separator between the blue and opacity planes", stdout, "\n  ),\n  %s(", argv[9]);
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
-    write_or_throw("an opacity", stdout, "%s%s%d", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", opacities[pixel]);
+    write_or_throw("an opacity", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", argv[10], opacities[pixel]);
   }
   free(opacities);
 
-  write_or_throw("the footer", stdout, "\n  }\n);\n");
+  write_or_throw("the footer", stdout, "\n  )\n);\n");
 
   return 0;
 }

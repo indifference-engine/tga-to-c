@@ -4,7 +4,7 @@ Command-line utility to convert TGA files to C files.
 
 ## Usage
 
-`tga_to_c MACRO_NAME variable_name path/to/first/include.h path/to/second/include.h < path/to/input.tga > path/to/output.c`
+`tga_to_c TEXTURE_MACRO_NAME variable_name REDS_MACRO_NAME RED_MACRO_NAME GREENS_MACRO_NAME GREEN_MACRO_NAME BLUES_MACRO_NAME BLUE_MACRO_NAME OPACITIES_MACRO_NAME OPACITY_MACRO_NAME path/to/first/include.h path/to/second/include.h < path/to/input.tga > path/to/output.c`
 
 This will output a file similar to the following:
 
@@ -12,7 +12,7 @@ This will output a file similar to the following:
 #include "path/to/first/include.h"
 #include "path/to/second/include.h"
 
-MACRO_NAME
+TEXTURE_MACRO_NAME
 (
   variable_name,
 
@@ -21,18 +21,46 @@ MACRO_NAME
 
   // Red plane, not linearized, row-major, starting in top left.  Opacity is not
   // pre-multiplied.
-  { 255, 18, 137, 209, 64, 32 },
+  REDS_MACRO_NAME(
+    RED_MACRO_NAME(255),
+    RED_MACRO_NAME(18),
+    RED_MACRO_NAME(137),
+    RED_MACRO_NAME(209),
+    RED_MACRO_NAME(64),
+    RED_MACRO_NAME(32)
+  ),
 
   // Green plane, not linearized, row-major, starting in top left.  Opacity is
   // not pre-multiplied.
-  { 255, 18, 137, 209, 64, 32 },
+  GREENS_MACRO_NAME(
+    GREEN_MACRO_NAME(255),
+    GREEN_MACRO_NAME(18),
+    GREEN_MACRO_NAME(137),
+    GREEN_MACRO_NAME(209),
+    GREEN_MACRO_NAME(64),
+    GREEN_MACRO_NAME(32)
+  ),
 
   // Blue plane, not linearized, row-major, starting in top left.  Opacity is
   // not pre-multiplied.
-  { 255, 18, 137, 209, 64, 32 },
+  BLUES_MACRO_NAME(
+    BLUE_MACRO_NAME(255),
+    BLUE_MACRO_NAME(18),
+    BLUE_MACRO_NAME(137),
+    BLUE_MACRO_NAME(209),
+    BLUE_MACRO_NAME(64),
+    BLUE_MACRO_NAME(32)
+  ),
 
   // Opacity plane, not linearized, row-major, starting in top left.
-  { 255, 18, 137, 209, 64, 32 },
+  OPACITIES_MACRO_NAME(
+    OPACITY_MACRO_NAME(255),
+    OPACITY_MACRO_NAME(18),
+    OPACITY_MACRO_NAME(137),
+    OPACITY_MACRO_NAME(209),
+    OPACITY_MACRO_NAME(64),
+    OPACITY_MACRO_NAME(32)
+  )
 );
 ```
 
