@@ -4,7 +4,7 @@ Command-line utility to convert TGA files to C files.
 
 ## Usage
 
-`tga_to_c TEXTURE_MACRO_NAME variable_name REDS_MACRO_NAME RED_MACRO_NAME GREENS_MACRO_NAME GREEN_MACRO_NAME BLUES_MACRO_NAME BLUE_MACRO_NAME OPACITIES_MACRO_NAME OPACITY_MACRO_NAME path/to/first/include.h path/to/second/include.h < path/to/input.tga > path/to/output.c`
+`tga_to_c TEXTURE_MACRO_NAME variable_name OPACITIES_MACRO_NAME OPACITY_MACRO_NAME REDS_MACRO_NAME RED_MACRO_NAME GREENS_MACRO_NAME GREEN_MACRO_NAME BLUES_MACRO_NAME BLUE_MACRO_NAME path/to/first/include.h path/to/second/include.h < path/to/input.tga > path/to/output.c`
 
 This will output a file similar to the following:
 
@@ -18,6 +18,16 @@ TEXTURE_MACRO_NAME
 
   // Width of image in pixel columns.
   3,
+
+  // Opacity plane, not linearized, row-major, starting in top left.
+  OPACITIES_MACRO_NAME(
+    OPACITY_MACRO_NAME(255),
+    OPACITY_MACRO_NAME(18),
+    OPACITY_MACRO_NAME(137),
+    OPACITY_MACRO_NAME(209),
+    OPACITY_MACRO_NAME(64),
+    OPACITY_MACRO_NAME(32)
+  ),
 
   // Red plane, not linearized, row-major, starting in top left.  Opacity is not
   // pre-multiplied.
@@ -50,16 +60,6 @@ TEXTURE_MACRO_NAME
     BLUE_MACRO_NAME(209),
     BLUE_MACRO_NAME(64),
     BLUE_MACRO_NAME(32)
-  ),
-
-  // Opacity plane, not linearized, row-major, starting in top left.
-  OPACITIES_MACRO_NAME(
-    OPACITY_MACRO_NAME(255),
-    OPACITY_MACRO_NAME(18),
-    OPACITY_MACRO_NAME(137),
-    OPACITY_MACRO_NAME(209),
-    OPACITY_MACRO_NAME(64),
-    OPACITY_MACRO_NAME(32)
   )
 )
 ```

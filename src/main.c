@@ -119,9 +119,9 @@ int main(int argc, char **argv)
 
   write_or_throw("the header", stdout, "%s%s\n(\n  %s,\n  %d,\n  %s(", argc > 3 ? "\n" : "", argv[1], argv[2], image_specification_width, argv[3]);
 
+  uint8_t *const reds = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const greens = malloc_or_throw("the green channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const blues = malloc_or_throw("the blue channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
-  uint8_t *const opacities = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
 
   int output_pixels = 0;
 
@@ -148,11 +148,11 @@ int main(int argc, char **argv)
             throw("Out-of-range color map index in compressed data.");
           }
 
+          reds[output_pixels] = color_map_data[offset + 2];
           greens[output_pixels] = color_map_data[offset + 1];
           blues[output_pixels] = color_map_data[offset];
-          opacities[output_pixels] = color_map_data[offset + 3];
 
-          write_or_throw("a red", stdout, "%s%s%s(%d)", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", argv[4], color_map_data[offset + 2]);
+          write_or_throw("an opacity", stdout, "%s%s%s(%d)", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", argv[4], color_map_data[offset + 3]);
           output_pixels++;
           instruction--;
         }
@@ -173,11 +173,11 @@ int main(int argc, char **argv)
       {
         if (output_pixels < image_specification_width * image_specification_height)
         {
+          reds[output_pixels] = color_map_data[offset + 2];
           greens[output_pixels] = color_map_data[offset + 1];
           blues[output_pixels] = color_map_data[offset];
-          opacities[output_pixels] = color_map_data[offset + 3];
 
-          write_or_throw("a red", stdout, "%s%s%s(%d)", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", argv[4], color_map_data[offset + 2]);
+          write_or_throw("an opacity", stdout, "%s%s%s(%d)", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", argv[4], color_map_data[offset + 3]);
           output_pixels++;
           instruction--;
         }
@@ -191,29 +191,29 @@ int main(int argc, char **argv)
 
   free(color_map_data);
 
-  write_or_throw("the separator between the red and green planes", stdout, "\n  ),\n  %s(", argv[5]);
+  write_or_throw("the separator between the opacity and red planes", stdout, "\n  ),\n  %s(", argv[5]);
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
-    write_or_throw("a green", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", argv[6], greens[pixel]);
+    write_or_throw("a red", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", argv[6], reds[pixel]);
+  }
+  free(reds);
+
+  write_or_throw("the separator between the red and green planes", stdout, "\n  ),\n  %s(", argv[7]);
+
+  for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
+  {
+    write_or_throw("a green", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", argv[8], greens[pixel]);
   }
   free(greens);
 
-  write_or_throw("the separator between the green and blue planes", stdout, "\n  ),\n  %s(", argv[7]);
+  write_or_throw("the separator between the green and blue planes", stdout, "\n  ),\n  %s(", argv[9]);
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
-    write_or_throw("a blue", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n     " : "", argv[8], blues[pixel]);
+    write_or_throw("a blue", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n     " : "", argv[10], blues[pixel]);
   }
   free(blues);
-
-  write_or_throw("the separator between the blue and opacity planes", stdout, "\n  ),\n  %s(", argv[9]);
-
-  for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
-  {
-    write_or_throw("an opacity", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", argv[10], opacities[pixel]);
-  }
-  free(opacities);
 
   write_or_throw("the footer", stdout, "\n  )\n)\n");
 
