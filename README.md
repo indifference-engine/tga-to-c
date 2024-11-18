@@ -64,6 +64,12 @@ TEXTURE_MACRO_NAME
 )
 ```
 
+## UV Padding
+
+All completely transparent pixels will be automatically filled with color from
+their neighboring pixels.  Note that this will not alter their opacity.  The
+texture sampler is assumed to wrap.
+
 ## Limitations
 
 Currently, only RLE-encoded images with indexed colors are supported.

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "reopen_as_read_only_binary_or_throw.h"
 #include "reopen_as_write_only_binary_or_throw.h"
 #include "read_u8_or_throw.h"
@@ -119,6 +120,7 @@ int main(int argc, char **argv)
 
   write_or_throw("the header", stdout, "%s%s\n(\n  %s,\n  %d,\n  %s(", argc > 3 ? "\n" : "", argv[1], argv[2], image_specification_width, argv[3]);
 
+  uint8_t *const opacities = malloc_or_throw("the opacity channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const reds = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const greens = malloc_or_throw("the green channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const blues = malloc_or_throw("the blue channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
@@ -148,11 +150,11 @@ int main(int argc, char **argv)
             throw("Out-of-range color map index in compressed data.");
           }
 
+          opacities[output_pixels] = color_map_data[offset + 3];
           reds[output_pixels] = color_map_data[offset + 2];
           greens[output_pixels] = color_map_data[offset + 1];
           blues[output_pixels] = color_map_data[offset];
 
-          write_or_throw("an opacity", stdout, "%s%s%s(%d)", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", argv[4], color_map_data[offset + 3]);
           output_pixels++;
           instruction--;
         }
@@ -173,11 +175,11 @@ int main(int argc, char **argv)
       {
         if (output_pixels < image_specification_width * image_specification_height)
         {
+          opacities[output_pixels] = color_map_data[offset + 3];
           reds[output_pixels] = color_map_data[offset + 2];
           greens[output_pixels] = color_map_data[offset + 1];
           blues[output_pixels] = color_map_data[offset];
 
-          write_or_throw("an opacity", stdout, "%s%s%s(%d)", output_pixels == 0 ? "" : ", ", output_pixels % image_specification_width == 0 ? "\n    " : "", argv[4], color_map_data[offset + 3]);
           output_pixels++;
           instruction--;
         }
@@ -190,6 +192,183 @@ int main(int argc, char **argv)
   }
 
   free(color_map_data);
+
+  uint8_t *const occupied = malloc_or_throw("occupancy", sizeof(bool) * image_specification_width * image_specification_height);
+
+  for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
+  {
+    occupied[pixel] = opacities[pixel] > 0;
+  }
+
+  uint8_t *const changed = malloc_or_throw("change list", sizeof(bool) * image_specification_width * image_specification_height);
+
+  while (true)
+  {
+    bool any_changed = false;
+
+    for (int row = 0; row < image_specification_height; row++)
+    {
+      for (int column = 0; column < image_specification_width; column++)
+      {
+        const int pixel = row * image_specification_width + column;
+
+        changed[pixel] = false;
+
+        int total_red = 0;
+        int total_green = 0;
+        int total_blue = 0;
+        int total_opacity = 0;
+        int occupied_neighbors = 0;
+
+        if (!occupied[pixel])
+        {
+          const int neighbor_above = ((row ? row : image_specification_height) - 1) * image_specification_width + column;
+
+          if (occupied[neighbor_above])
+          {
+            const int opacity = opacities[neighbor_above];
+            const int red = reds[neighbor_above];
+            const int green = greens[neighbor_above];
+            const int blue = blues[neighbor_above];
+
+            total_opacity += opacity;
+            total_red += red;
+            total_green += green;
+            total_blue += blue;
+
+            occupied_neighbors++;
+          }
+
+          const int neighbor_left = row * image_specification_width + ((column ? column : image_specification_width) - 1);
+
+          if (occupied[neighbor_left])
+          {
+            const int opacity = opacities[neighbor_left];
+            const int red = reds[neighbor_left];
+            const int green = greens[neighbor_left];
+            const int blue = blues[neighbor_left];
+
+            total_opacity += opacity;
+            total_red += red;
+            total_green += green;
+            total_blue += blue;
+
+            occupied_neighbors++;
+          }
+
+          const int neighbor_below = (row == image_specification_height - 1 ? 0 : row + 1) * image_specification_width + column;
+
+          if (occupied[neighbor_below])
+          {
+            const int opacity = opacities[neighbor_below];
+            const int red = reds[neighbor_below];
+            const int green = greens[neighbor_below];
+            const int blue = blues[neighbor_below];
+
+            total_opacity += opacity;
+            total_red += red;
+            total_green += green;
+            total_blue += blue;
+
+            occupied_neighbors++;
+          }
+
+          const int neighbor_right = row * image_specification_width + (column == image_specification_width - 1 ? 0 : column + 1);
+
+          if (occupied[neighbor_right])
+          {
+            const int opacity = opacities[neighbor_right];
+            const int red = reds[neighbor_right];
+            const int green = greens[neighbor_right];
+            const int blue = blues[neighbor_right];
+
+            total_red += red;
+            total_green += green;
+            total_blue += blue;
+
+            occupied_neighbors++;
+
+            total_opacity += opacity;
+          }
+
+          if (occupied_neighbors)
+          {
+            if (total_opacity)
+            {
+              int averaged_red = 0;
+              int averaged_green = 0;
+              int averaged_blue = 0;
+
+              if (occupied[neighbor_above])
+              {
+                averaged_red += (opacities[neighbor_above] * reds[neighbor_above]) / total_opacity;
+                averaged_green += (opacities[neighbor_above] * greens[neighbor_above]) / total_opacity;
+                averaged_blue += (opacities[neighbor_above] * blues[neighbor_above]) / total_opacity;
+              }
+
+              if (occupied[neighbor_below])
+              {
+                averaged_red += (opacities[neighbor_below] * reds[neighbor_below]) / total_opacity;
+                averaged_green += (opacities[neighbor_below] * greens[neighbor_below]) / total_opacity;
+                averaged_blue += (opacities[neighbor_below] * blues[neighbor_below]) / total_opacity;
+              }
+
+              if (occupied[neighbor_left])
+              {
+                averaged_red += (opacities[neighbor_left] * reds[neighbor_left]) / total_opacity;
+                averaged_green += (opacities[neighbor_left] * greens[neighbor_left]) / total_opacity;
+                averaged_blue += (opacities[neighbor_left] * blues[neighbor_left]) / total_opacity;
+              }
+
+              if (occupied[neighbor_right])
+              {
+                averaged_red += (opacities[neighbor_right] * reds[neighbor_right]) / total_opacity;
+                averaged_green += (opacities[neighbor_right] * greens[neighbor_right]) / total_opacity;
+                averaged_blue += (opacities[neighbor_right] * blues[neighbor_right]) / total_opacity;
+              }
+
+              reds[pixel] = averaged_red;
+              greens[pixel] = averaged_green;
+              blues[pixel] = averaged_blue;
+            }
+            else
+            {
+              reds[pixel] = total_red / occupied_neighbors;
+              greens[pixel] = total_green / occupied_neighbors;
+              blues[pixel] = total_blue / occupied_neighbors;
+            }
+
+            changed[pixel] = true;
+            any_changed = true;
+          }
+        }
+      }
+    }
+
+    if (any_changed)
+    {
+      for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
+      {
+        if (changed[pixel])
+        {
+          occupied[pixel] = true;
+        }
+      }
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  free(changed);
+  free(occupied);
+
+  for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
+  {
+    write_or_throw("an opacity", stdout, "%s%s%s(%d)", pixel == 0 ? "" : ", ", pixel % image_specification_width == 0 ? "\n    " : "", argv[4], opacities[pixel]);
+  }
+  free(opacities);
 
   write_or_throw("the separator between the opacity and red planes", stdout, "\n  ),\n  %s(", argv[5]);
 
