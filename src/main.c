@@ -62,9 +62,9 @@ int main(int argc, char **argv)
 
   const uint8_t color_map_specification_color_map_entry_size = read_u8_or_throw("the color map entry size from the color map specification", stdin);
 
-  if (color_map_specification_color_map_entry_size != 32)
+  if (color_map_specification_color_map_entry_size != 24 && color_map_specification_color_map_entry_size != 32)
   {
-    throw("Color map specification entry size %d is unsupported (only 32).", color_map_specification_color_map_entry_size);
+    throw("Color map specification entry size %d is unsupported (only 24 or 32).", color_map_specification_color_map_entry_size);
   }
 
   const uint16_t image_specification_x_origin = read_u16_or_throw("the x origin from the image specification", stdin);
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
             throw("Out-of-range color map index in compressed data.");
           }
 
-          opacities[output_pixels] = color_map_data[offset + 3];
+          opacities[output_pixels] = color_map_specification_color_map_entry_size == 32 ? color_map_data[offset + 3] : 255;
           reds[output_pixels] = color_map_data[offset + 2];
           greens[output_pixels] = color_map_data[offset + 1];
           blues[output_pixels] = color_map_data[offset];
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
       {
         if (output_pixels < image_specification_width * image_specification_height)
         {
-          opacities[output_pixels] = color_map_data[offset + 3];
+          opacities[output_pixels] = color_map_specification_color_map_entry_size == 32 ? color_map_data[offset + 3] : 255;
           reds[output_pixels] = color_map_data[offset + 2];
           greens[output_pixels] = color_map_data[offset + 1];
           blues[output_pixels] = color_map_data[offset];
