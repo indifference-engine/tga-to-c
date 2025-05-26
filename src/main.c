@@ -122,7 +122,7 @@ int main(int argc, char **argv)
         opacities[index] = 255;
       }
 
-      uint8_t **planes = read_rle_encoded_u8s_or_throw("the blue channel", stdin, 3, image_specification_width * image_specification_height);
+      uint8_t **planes = read_rle_encoded_u8s_or_throw("the pixels", stdin, 3, image_specification_width * image_specification_height);
       blues = planes[0];
       greens = planes[1];
       reds = planes[2];
@@ -130,8 +130,26 @@ int main(int argc, char **argv)
       break;
     }
 
+    case 32:
+    {
+      const uint8_t image_specification_image_descriptor = read_u8_or_throw("the image descriptor from the image specification", stdin);
+
+      if (image_specification_image_descriptor != 40)
+      {
+        throw("Image specification image descriptor %d is unsupported (only 40).", image_specification_image_descriptor);
+      }
+
+      uint8_t **planes = read_rle_encoded_u8s_or_throw("the pixels", stdin, 4, image_specification_width * image_specification_height);
+      blues = planes[0];
+      greens = planes[1];
+      reds = planes[2];
+      opacities = planes[3];
+      free(planes);
+      break;
+    }
+
     default:
-      throw("Image specification bits per pixel %d is unsupported (only 24 when the color map type is 0).", image_specification_bits_per_pixel);
+      throw("Image specification bits per pixel %d is unsupported (only 24 or 32 when the color map type is 0).", image_specification_bits_per_pixel);
     }
 
     break;
