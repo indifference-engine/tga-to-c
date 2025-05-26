@@ -113,14 +113,6 @@ int main(int argc, char **argv)
   const int color_map_size = (color_map_specification_color_map_length * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
 
   uint8_t *const color_map_data = read_u8s_or_throw("the color map", stdin, color_map_size);
-
-  for (int index = 11; index < argc; index++)
-  {
-    write_or_throw("an include", stdout, "#include \"%s\"\n", argv[index]);
-  }
-
-  write_or_throw("the header", stdout, "%s%s\n(\n  %s,\n  %d,\n  %s(", argc > 3 ? "\n" : "", argv[1], argv[2], image_specification_width, argv[3]);
-
   uint8_t *const palette_indices = read_rle_encoded_u8s_or_throw("palette indices", stdin, image_specification_width * image_specification_height);
   uint8_t *const opacities = malloc_or_throw("the opacity channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const reds = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
@@ -315,6 +307,13 @@ int main(int argc, char **argv)
 
   free(changed);
   free(occupied);
+
+  for (int index = 11; index < argc; index++)
+  {
+    write_or_throw("an include", stdout, "#include \"%s\"\n", argv[index]);
+  }
+
+  write_or_throw("the header", stdout, "%s%s\n(\n  %s,\n  %d,\n  %s(", argc > 3 ? "\n" : "", argv[1], argv[2], image_specification_width, argv[3]);
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
