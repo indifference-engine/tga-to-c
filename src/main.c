@@ -44,6 +44,99 @@ int main(int argc, char **argv)
 
   switch (color_map_type)
   {
+  case 0:
+  {
+    const uint8_t image_type = read_u8_or_throw("the image type", stdin);
+
+    if (image_type != 10)
+    {
+      throw("Image type %d is unsupported (only 10 when the color map type is 0).", image_type);
+    }
+
+    const uint16_t color_map_specification_first_entry_index = read_u16_or_throw("the first entry index from the color map specification", stdin);
+
+    if (color_map_specification_first_entry_index)
+    {
+      throw("Color map specification first entry index %d is unsupported (only 0).", color_map_specification_first_entry_index);
+    }
+
+    const uint16_t color_map_specification_color_map_length = read_u16_or_throw("the color map length from the color map specification", stdin);
+
+    if (color_map_specification_color_map_length)
+    {
+      throw("Color map specification length %d is unsupported (only 0 when the color map type is 0).", color_map_specification_color_map_length);
+    }
+
+    const uint8_t color_map_specification_color_map_entry_size = read_u8_or_throw("the color map entry size from the color map specification", stdin);
+
+    if (color_map_specification_color_map_entry_size)
+    {
+      throw("Color map specification entry size %d is unsupported (only 0 when the color map type is 0).", color_map_specification_color_map_entry_size);
+    }
+
+    const uint16_t image_specification_x_origin = read_u16_or_throw("the x origin from the image specification", stdin);
+
+    if (image_specification_x_origin != 0)
+    {
+      throw("Image specification x origin %d is unsupported (only 0).", image_specification_x_origin);
+    }
+
+    const uint16_t image_specification_y_origin = read_u16_or_throw("the y origin from the image specification", stdin);
+
+    if (image_specification_y_origin != 0)
+    {
+      throw("Image specification y origin %d is unsupported (only 0).", image_specification_y_origin);
+    }
+
+    image_specification_width = read_u16_or_throw("the width from the image specification", stdin);
+
+    if (image_specification_width == 0)
+    {
+      throw("Image specification width %d is unsupported.", image_specification_width);
+    }
+
+    image_specification_height = read_u16_or_throw("the height from the image specification", stdin);
+
+    if (image_specification_height == 0)
+    {
+      throw("Image specification height %d is unsupported.", image_specification_height);
+    }
+
+    const uint8_t image_specification_bits_per_pixel = read_u8_or_throw("the bits per pixel from the image specification", stdin);
+
+    switch (image_specification_bits_per_pixel)
+    {
+    case 24:
+    {
+      const uint8_t image_specification_image_descriptor = read_u8_or_throw("the image descriptor from the image specification", stdin);
+
+      if (image_specification_image_descriptor != 32)
+      {
+        throw("Image specification image descriptor %d is unsupported (only 32).", image_specification_image_descriptor);
+      }
+
+      opacities = malloc_or_throw("the opacity channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
+
+      for (size_t index = 0; index < image_specification_width * image_specification_height; index++)
+      {
+        opacities[index] = 255;
+      }
+
+      uint8_t **planes = read_rle_encoded_u8s_or_throw("the blue channel", stdin, 3, image_specification_width * image_specification_height);
+      blues = planes[0];
+      greens = planes[1];
+      reds = planes[2];
+      free(planes);
+      break;
+    }
+
+    default:
+      throw("Image specification bits per pixel %d is unsupported (only 24 when the color map type is 0).", image_specification_bits_per_pixel);
+    }
+
+    break;
+  }
+
   case 1:
   {
     const uint8_t image_type = read_u8_or_throw("the image type", stdin);
