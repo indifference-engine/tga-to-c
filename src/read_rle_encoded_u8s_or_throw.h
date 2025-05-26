@@ -4,11 +4,14 @@
  * @param description A description of what is being read
  *                    (e.g. "a sub-heading").
  * @param file The file from which to read unsigned bytes.
- * @param quantity The number of unsigned bytes to read from the file.
- * @return A pointer to newly allocated memory containing the read unsigned
- *         bytes.
+ * @param quantity_of_planes The number of planes to read from the file.
+ * @param quantity_per_plane The number of bytes to read per plane from the
+ *                           file.
+ * @return A pointer to newly allocated memory containing the planes of read
+ *         unsigned bytes.
  */
-uint8_t *read_rle_encoded_u8s_or_throw(
+uint8_t **read_rle_encoded_u8s_or_throw(
     const char *const description,
     FILE *const file,
-    const size_t quantity);
+    const size_t quantity_of_planes,
+    const size_t quantity_per_plane);

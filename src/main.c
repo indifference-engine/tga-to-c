@@ -119,7 +119,7 @@ int main(int argc, char **argv)
     const int color_map_size = (color_map_specification_color_map_length * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
 
     uint8_t *const color_map_data = read_u8s_or_throw("the color map", stdin, color_map_size);
-    uint8_t *const palette_indices = read_rle_encoded_u8s_or_throw("palette indices", stdin, image_specification_width * image_specification_height);
+    uint8_t **const palette_indices = read_rle_encoded_u8s_or_throw("palette indices", stdin, 1, image_specification_width * image_specification_height);
     opacities = malloc_or_throw("the opacity channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
     reds = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
     greens = malloc_or_throw("the green channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 
     for (int index = 0; index < image_specification_width * image_specification_height; index++)
     {
-      int offset = (palette_indices[index] * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
+      int offset = (palette_indices[0][index] * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
 
       if (offset >= color_map_size)
       {
@@ -140,6 +140,7 @@ int main(int argc, char **argv)
       blues[index] = color_map_data[offset];
     }
 
+    free(palette_indices[0]);
     free(palette_indices);
     free(color_map_data);
     break;

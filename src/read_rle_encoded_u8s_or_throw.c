@@ -1,19 +1,27 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include "read_s8_or_throw.h"
 #include "read_u8_or_throw.h"
 #include "malloc_or_throw.h"
 #include "throw.h"
 
-uint8_t *read_rle_encoded_u8s_or_throw(
+uint8_t **read_rle_encoded_u8s_or_throw(
     const char *const description,
     FILE *const file,
-    const size_t quantity)
+    const size_t quantity_of_planes,
+    const size_t quantity_per_plane)
 {
-  uint8_t *const output = malloc_or_throw(description, quantity);
+  uint8_t *const temp = malloc_or_throw(description, quantity_of_planes * sizeof(uint8_t));
+  uint8_t **const output = malloc_or_throw(description, quantity_of_planes * sizeof(uint8_t *));
 
-  for (size_t index = 0; index < quantity;)
+  for (size_t plane_index = 0; plane_index < quantity_of_planes; plane_index++)
+  {
+    output[plane_index] = malloc_or_throw(description, quantity_per_plane * sizeof(uint8_t));
+  }
+
+  for (size_t byte_index = 0; byte_index < quantity_per_plane;)
   {
     int instruction = read_s8_or_throw("next RLE instruction", file);
 
@@ -21,7 +29,7 @@ uint8_t *read_rle_encoded_u8s_or_throw(
     {
       instruction++;
 
-      if (index + instruction > quantity)
+      if (byte_index + instruction > quantity_per_plane)
       {
         throw("Excess bytes in compressed data.");
       }
@@ -29,10 +37,13 @@ uint8_t *read_rle_encoded_u8s_or_throw(
       {
         while (instruction > 0)
         {
-          const uint8_t value = read_u8_or_throw("a byte", file);
-          output[index] = value;
+          for (size_t plane_index = 0; plane_index < quantity_of_planes; plane_index++)
+          {
+            const uint8_t value = read_u8_or_throw("a byte", file);
+            output[plane_index][byte_index] = value;
+          }
 
-          index++;
+          byte_index++;
           instruction--;
         }
       }
@@ -41,15 +52,21 @@ uint8_t *read_rle_encoded_u8s_or_throw(
     {
       instruction += 129;
 
-      const uint8_t value = read_u8_or_throw("a byte to repeat", file);
+      for (size_t plane_index = 0; plane_index < quantity_of_planes; plane_index++)
+      {
+        temp[plane_index] = read_u8_or_throw("a byte to repeat", file);
+      }
 
       while (instruction > 0)
       {
-        if (index < quantity)
+        if (byte_index < quantity_per_plane)
         {
-          output[index] = value;
+          for (size_t plane_index = 0; plane_index < quantity_of_planes; plane_index++)
+          {
+            output[plane_index][byte_index] = temp[plane_index];
+          }
 
-          index++;
+          byte_index++;
           instruction--;
         }
         else
@@ -59,6 +76,8 @@ uint8_t *read_rle_encoded_u8s_or_throw(
       }
     }
   }
+
+  free(temp);
 
   return output;
 }
