@@ -8,6 +8,7 @@
 #include "read_u8s_or_throw.h"
 #include "read_u16_or_throw.h"
 #include "read_s8_or_throw.h"
+#include "read_rle_encoded_u8s_or_throw.h"
 #include "write_or_throw.h"
 #include "throw.h"
 #include "malloc_or_throw.h"
@@ -120,77 +121,28 @@ int main(int argc, char **argv)
 
   write_or_throw("the header", stdout, "%s%s\n(\n  %s,\n  %d,\n  %s(", argc > 3 ? "\n" : "", argv[1], argv[2], image_specification_width, argv[3]);
 
+  uint8_t *const palette_indices = read_rle_encoded_u8s_or_throw("palette indices", stdin, image_specification_width * image_specification_height);
   uint8_t *const opacities = malloc_or_throw("the opacity channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const reds = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const greens = malloc_or_throw("the green channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
   uint8_t *const blues = malloc_or_throw("the blue channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
 
-  int output_pixels = 0;
-
-  while (output_pixels < image_specification_width * image_specification_height)
+  for (int index = 0; index < image_specification_width * image_specification_height; index++)
   {
-    int instruction = read_s8_or_throw("next RLE instruction", stdin);
+    int offset = (palette_indices[index] * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
 
-    if (instruction >= 0)
+    if (offset >= color_map_size)
     {
-      instruction++;
-
-      if (output_pixels + instruction > image_specification_width * image_specification_height)
-      {
-        throw("Excess pixels in compressed data.");
-      }
-      else
-      {
-        while (instruction > 0)
-        {
-          int offset = (read_u8_or_throw("a color map index", stdin) * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
-
-          if (offset >= color_map_size)
-          {
-            throw("Out-of-range color map index in compressed data.");
-          }
-
-          opacities[output_pixels] = color_map_specification_color_map_entry_size == 32 ? color_map_data[offset + 3] : 255;
-          reds[output_pixels] = color_map_data[offset + 2];
-          greens[output_pixels] = color_map_data[offset + 1];
-          blues[output_pixels] = color_map_data[offset];
-
-          output_pixels++;
-          instruction--;
-        }
-      }
+      throw("Out-of-range color map index.");
     }
-    else
-    {
-      instruction += 129;
 
-      int offset = (read_u8_or_throw("the color map index to repeat", stdin) * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
-
-      if (offset >= color_map_size)
-      {
-        throw("Out-of-range color map index in compressed data.");
-      }
-
-      while (instruction > 0)
-      {
-        if (output_pixels < image_specification_width * image_specification_height)
-        {
-          opacities[output_pixels] = color_map_specification_color_map_entry_size == 32 ? color_map_data[offset + 3] : 255;
-          reds[output_pixels] = color_map_data[offset + 2];
-          greens[output_pixels] = color_map_data[offset + 1];
-          blues[output_pixels] = color_map_data[offset];
-
-          output_pixels++;
-          instruction--;
-        }
-        else
-        {
-          throw("Excess pixels in compressed data.");
-        }
-      }
-    }
+    opacities[index] = color_map_specification_color_map_entry_size == 32 ? color_map_data[offset + 3] : 255;
+    reds[index] = color_map_data[offset + 2];
+    greens[index] = color_map_data[offset + 1];
+    blues[index] = color_map_data[offset];
   }
 
+  free(palette_indices);
   free(color_map_data);
 
   uint8_t *const occupied = malloc_or_throw("occupancy", sizeof(bool) * image_specification_width * image_specification_height);
