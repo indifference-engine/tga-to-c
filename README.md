@@ -72,7 +72,7 @@ texture sampler is assumed to wrap.
 
 ## Limitations
 
-Currently, only RLE-encoded images with indexed colors are supported.
+Currently, only RLE-encoded images are supported.
 
 While there is basic test coverage for this utility, error cases currently lack
 test coverage.  Details on these missing test cases can be found in the
