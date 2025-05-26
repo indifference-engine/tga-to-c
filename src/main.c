@@ -33,109 +33,121 @@ int main(int argc, char **argv)
     throw("ID length %d is unsupported (only 0).", id_length);
   }
 
+  uint16_t image_specification_width = 0;
+  uint16_t image_specification_height = 0;
+  uint8_t *opacities = NULL;
+  uint8_t *reds = NULL;
+  uint8_t *greens = NULL;
+  uint8_t *blues = NULL;
+
   const uint8_t color_map_type = read_u8_or_throw("the color map type", stdin);
 
-  if (color_map_type != 1)
+  switch (color_map_type)
   {
-    throw("Color map type %d is unsupported (only 1).", color_map_type);
-  }
-
-  const uint8_t image_type = read_u8_or_throw("the image type", stdin);
-
-  if (image_type != 9)
+  case 1:
   {
-    throw("Image type %d is unsupported (only 9).", image_type);
-  }
+    const uint8_t image_type = read_u8_or_throw("the image type", stdin);
 
-  const uint16_t color_map_specification_first_entry_index = read_u16_or_throw("the first entry index from the color map specification", stdin);
-
-  if (color_map_specification_first_entry_index)
-  {
-    throw("Color map specification first entry index %d is unsupported (only 0).", color_map_specification_first_entry_index);
-  }
-
-  const uint16_t color_map_specification_color_map_length = read_u16_or_throw("the color map length from the color map specification", stdin);
-
-  if (color_map_specification_color_map_length < 1)
-  {
-    throw("Color map specification length %d is unsupported (must be at least 1).", color_map_specification_color_map_length);
-  }
-
-  const uint8_t color_map_specification_color_map_entry_size = read_u8_or_throw("the color map entry size from the color map specification", stdin);
-
-  if (color_map_specification_color_map_entry_size != 24 && color_map_specification_color_map_entry_size != 32)
-  {
-    throw("Color map specification entry size %d is unsupported (only 24 or 32).", color_map_specification_color_map_entry_size);
-  }
-
-  const uint16_t image_specification_x_origin = read_u16_or_throw("the x origin from the image specification", stdin);
-
-  if (image_specification_x_origin != 0)
-  {
-    throw("Image specification x origin %d is unsupported (only 0).", image_specification_x_origin);
-  }
-
-  const uint16_t image_specification_y_origin = read_u16_or_throw("the y origin from the image specification", stdin);
-
-  if (image_specification_y_origin != 0)
-  {
-    throw("Image specification y origin %d is unsupported (only 0).", image_specification_y_origin);
-  }
-
-  const uint16_t image_specification_width = read_u16_or_throw("the width from the image specification", stdin);
-
-  if (image_specification_width == 0)
-  {
-    throw("Image specification width %d is unsupported.", image_specification_width);
-  }
-
-  const uint16_t image_specification_height = read_u16_or_throw("the height from the image specification", stdin);
-
-  if (image_specification_height == 0)
-  {
-    throw("Image specification height %d is unsupported.", image_specification_height);
-  }
-
-  const uint8_t image_specification_bits_per_pixel = read_u8_or_throw("the bits per pixel from the image specification", stdin);
-
-  if (image_specification_bits_per_pixel != 8)
-  {
-    throw("Image specification bits per pixel %d is unsupported (only 8).", image_specification_bits_per_pixel);
-  }
-
-  const uint8_t image_specification_image_descriptor = read_u8_or_throw("the image descriptor from the image specification", stdin);
-
-  if (image_specification_image_descriptor != 32)
-  {
-    throw("Image specification image descriptor %d is unsupported (only 32).", image_specification_image_descriptor);
-  }
-
-  const int color_map_size = (color_map_specification_color_map_length * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
-
-  uint8_t *const color_map_data = read_u8s_or_throw("the color map", stdin, color_map_size);
-  uint8_t *const palette_indices = read_rle_encoded_u8s_or_throw("palette indices", stdin, image_specification_width * image_specification_height);
-  uint8_t *const opacities = malloc_or_throw("the opacity channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
-  uint8_t *const reds = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
-  uint8_t *const greens = malloc_or_throw("the green channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
-  uint8_t *const blues = malloc_or_throw("the blue channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
-
-  for (int index = 0; index < image_specification_width * image_specification_height; index++)
-  {
-    int offset = (palette_indices[index] * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
-
-    if (offset >= color_map_size)
+    if (image_type != 9)
     {
-      throw("Out-of-range color map index.");
+      throw("Image type %d is unsupported (only 9 when the color map type is 1).", image_type);
     }
 
-    opacities[index] = color_map_specification_color_map_entry_size == 32 ? color_map_data[offset + 3] : 255;
-    reds[index] = color_map_data[offset + 2];
-    greens[index] = color_map_data[offset + 1];
-    blues[index] = color_map_data[offset];
+    const uint16_t color_map_specification_first_entry_index = read_u16_or_throw("the first entry index from the color map specification", stdin);
+
+    if (color_map_specification_first_entry_index)
+    {
+      throw("Color map specification first entry index %d is unsupported (only 0).", color_map_specification_first_entry_index);
+    }
+
+    const uint16_t color_map_specification_color_map_length = read_u16_or_throw("the color map length from the color map specification", stdin);
+
+    if (color_map_specification_color_map_length < 1)
+    {
+      throw("Color map specification length %d is unsupported (must be at least 1 when the color map type is 1).", color_map_specification_color_map_length);
+    }
+
+    const uint8_t color_map_specification_color_map_entry_size = read_u8_or_throw("the color map entry size from the color map specification", stdin);
+
+    if (color_map_specification_color_map_entry_size != 24 && color_map_specification_color_map_entry_size != 32)
+    {
+      throw("Color map specification entry size %d is unsupported (only 24 or 32 when the color map type is 1).", color_map_specification_color_map_entry_size);
+    }
+
+    const uint16_t image_specification_x_origin = read_u16_or_throw("the x origin from the image specification", stdin);
+
+    if (image_specification_x_origin != 0)
+    {
+      throw("Image specification x origin %d is unsupported (only 0).", image_specification_x_origin);
+    }
+
+    const uint16_t image_specification_y_origin = read_u16_or_throw("the y origin from the image specification", stdin);
+
+    if (image_specification_y_origin != 0)
+    {
+      throw("Image specification y origin %d is unsupported (only 0).", image_specification_y_origin);
+    }
+
+    image_specification_width = read_u16_or_throw("the width from the image specification", stdin);
+
+    if (image_specification_width == 0)
+    {
+      throw("Image specification width %d is unsupported.", image_specification_width);
+    }
+
+    image_specification_height = read_u16_or_throw("the height from the image specification", stdin);
+
+    if (image_specification_height == 0)
+    {
+      throw("Image specification height %d is unsupported.", image_specification_height);
+    }
+
+    const uint8_t image_specification_bits_per_pixel = read_u8_or_throw("the bits per pixel from the image specification", stdin);
+
+    if (image_specification_bits_per_pixel != 8)
+    {
+      throw("Image specification bits per pixel %d is unsupported (only 8 when the color map type is 1).", image_specification_bits_per_pixel);
+    }
+
+    const uint8_t image_specification_image_descriptor = read_u8_or_throw("the image descriptor from the image specification", stdin);
+
+    if (image_specification_image_descriptor != 32)
+    {
+      throw("Image specification image descriptor %d is unsupported (only 32).", image_specification_image_descriptor);
+    }
+
+    const int color_map_size = (color_map_specification_color_map_length * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
+
+    uint8_t *const color_map_data = read_u8s_or_throw("the color map", stdin, color_map_size);
+    uint8_t *const palette_indices = read_rle_encoded_u8s_or_throw("palette indices", stdin, image_specification_width * image_specification_height);
+    opacities = malloc_or_throw("the opacity channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
+    reds = malloc_or_throw("the red channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
+    greens = malloc_or_throw("the green channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
+    blues = malloc_or_throw("the blue channel", sizeof(uint8_t) * image_specification_width * image_specification_height);
+
+    for (int index = 0; index < image_specification_width * image_specification_height; index++)
+    {
+      int offset = (palette_indices[index] * color_map_specification_color_map_entry_size) / (sizeof(uint8_t) * 8);
+
+      if (offset >= color_map_size)
+      {
+        throw("Out-of-range color map index.");
+      }
+
+      opacities[index] = color_map_specification_color_map_entry_size == 32 ? color_map_data[offset + 3] : 255;
+      reds[index] = color_map_data[offset + 2];
+      greens[index] = color_map_data[offset + 1];
+      blues[index] = color_map_data[offset];
+    }
+
+    free(palette_indices);
+    free(color_map_data);
+    break;
   }
 
-  free(palette_indices);
-  free(color_map_data);
+  default:
+    throw("Color map type %d is unsupported (only 1).", color_map_type);
+  }
 
   uint8_t *const occupied = malloc_or_throw("occupancy", sizeof(bool) * image_specification_width * image_specification_height);
 
